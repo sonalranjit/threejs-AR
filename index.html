@@ -151,7 +151,7 @@
 
         var objLoader = new THREE.OBJLoader();
         objLoader.setMaterials(materials);
-        objLoader.load('nike.obj', function(object){
+        objLoader.load('./data/models/nike.obj', function(object){
             window.model = object;
             object.position.y = 0.5
             object.rotation.x = 3*Math.PI/2;
