@@ -140,13 +140,22 @@
 		patternUrl : THREEx.ArToolkitContext.baseURL + '../data/markers/nike-pattern.patt',
 	})
 
-	// add a gizmo in the center of the marker
-	var geometry	= new THREE.OctahedronGeometry( 0.1, 0 )
-	var material	= new THREE.MeshNormalMaterial({
-		wireframe: true
-	}); 
-	var mesh	= new THREE.Mesh( geometry, material );
-	markerRoot2.add( mesh );
+    var url2 = './data/models/nike.obj';
+    var loader2 = new THREE.OBJLoader();
+    loader2.load(url2, function(model){
+        window.model = model
+        model.position.y = 0.5
+
+        model.rotation.x = 3*Math.PI/2
+        model.rotation.y = Math.PI
+
+        var material = model.childern[0].material
+        material.shading = THREE.SmoothShading
+        
+        model.scale.set(1,1,1).multiplyScalar(0.005)
+        markerRoot2.add(model)
+    });
+	
 })()
 
 
