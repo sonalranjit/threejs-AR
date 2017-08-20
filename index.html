@@ -146,7 +146,7 @@
     // Loading obj + mtl
     var mtlLoader = new THREE.MTLLoader();
     mtlLoader.setPath('./data/models/');
-    mtlLoader.Load('nike.mtl', function(materials){
+    mtlLoader.load('nike.mtl', function(materials){
         materials.preload();
 
         var objLoader = new THREE.OBJLoader();
