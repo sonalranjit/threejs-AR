@@ -143,7 +143,25 @@
 		patternUrl : THREEx.ArToolkitContext.baseURL + '../data/markers/nike-pattern.patt',
 	})
 
-    var url2 = './data/models/nike.obj';
+    // Loading obj + mtl
+    var mtlLoader = new THREE.MTLLoader();
+    mtlLoader.setPath('./data/models/');
+    mtlLoader.Load('nike.mtl', function(materials){
+        materials.preload();
+
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.load('nike.obj', function(object){
+            window.model = object;
+            object.position.y = 0.5
+            object.rotation.x = 3*Math.PI/2;
+            object.rotation.y = Math.PI;
+            markerRoot2.add(object);
+        }, onProgress, onError);
+
+    })
+    //var url2 = './data/models/nike.obj';
+    /*
     var loader2 = new THREE.OBJLoader();
     loader2.load(url2, function(model){
         window.model = model
@@ -153,7 +171,7 @@
         model.rotation.y = Math.PI
                
         markerRoot2.add(model)
-    });
+    });*/
 	
 })()
 
