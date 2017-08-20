@@ -151,9 +151,6 @@
 
         model.rotation.x = 3*Math.PI/2
         model.rotation.y = Math.PI
-
-        var material = model.childern[0].material
-        material.shading = THREE.SmoothShading
         
         model.scale.set(1,1,1).multiplyScalar(0.005)
         markerRoot2.add(model)
