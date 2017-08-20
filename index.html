@@ -141,14 +141,21 @@
 		patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
 		// patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
 	})
+    // load obj+mtl
+    var mtlLoader1 = new THREE.MTLLoader();
+    mtlLoader1.setPath('.data/models/');
+    mtlLoader1.load('babyDove.mtl', function(materials){
+        materials.preload();
 
-	// add a gizmo in the center of the marker
-	var geometry	= new THREE.OctahedronGeometry( 0.1, 0 )
-	var material	= new THREE.MeshNormalMaterial({
-		wireframe: true
-	}); 
-	var mesh	= new THREE.Mesh( geometry, material );
-	markerRoot1.add( mesh );
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.load('./data/models/babyDove.obj', function(object){
+            window.model = object;
+            object.position.y = 0.5
+            object.scale.set(1,1,1,).multiplyScalar(0.04);
+            markerRoot1.add(object);
+        });
+    })
 
 	//////////////////////////////////////////////////////////////////////////////
 	//		markerRoot2
@@ -175,8 +182,6 @@
         objLoader.load('./data/models/nike.obj', function(object){
             window.model = object;
             object.position.y = 0.5
-            object.rotation.x = 3*Math.PI/2;
-            object.rotation.y = Math.PI;
             markerRoot2.add(object);
         });
 
