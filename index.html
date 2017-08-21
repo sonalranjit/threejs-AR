@@ -13,296 +13,311 @@
 <script src="./src/threex/threex-artoolkitcontext.js"></script>
 <script src="./src/threex/threex-arbasecontrols.js"></script>
 <script src="./src/threex/threex-armarkercontrols.js"></script>
-<script>THREEx.ArToolkitContext.baseURL = 'threejs-AR/'+ './'</script>
-
-<body style='margin : 0px; overflow: hidden; font-family: Monospace;'><div style='position: absolute; top: 10px; width:100%; text-align: center; z-index: 1;'>
-	<a href="https://github.com/jeromeetienne/AR.js/" target="_blank">AR.js</a> - Measure the distance between 2 markers - hiro and kanji
-	<br/>
-	Contact me any time at <a href='https://twitter.com/jerome_etienne' target='_blank'>@jerome_etienne</a>
-</div>
 <script>
-	//////////////////////////////////////////////////////////////////////////////////
-	//		Init
-	//////////////////////////////////////////////////////////////////////////////////
-
-	// init renderer
-	var renderer	= new THREE.WebGLRenderer({
-		antialias	: true,
-		alpha: true
-	});
-	renderer.setClearColor(new THREE.Color('lightgrey'), 0)
-	renderer.setSize( 640, 480 );
-	renderer.domElement.style.position = 'absolute'
-	renderer.domElement.style.top = '0px'
-	renderer.domElement.style.left = '0px'
-	document.body.appendChild( renderer.domElement );
-
-	// array of functions for the rendering loop
-	var onRenderFcts= [];
-
-	// init scene and camera
-	var scene	= new THREE.Scene();
-
-    //////////////////////////////////////////////////////////////////////////////////
-	//		set 3 point lighting						//
-	//////////////////////////////////////////////////////////////////////////////////
-	;(function(){
-		var object3d	= new THREE.AmbientLight(0x101010)
-		object3d.name	= 'Ambient light'
-		scene.add(object3d)
-		var object3d	= new THREE.DirectionalLight('white', 0.225)
-		object3d.position.set(2.6,1,3)
-		object3d.name	= 'Back light'
-		scene.add(object3d)
-		var object3d	= new THREE.DirectionalLight('white', 0.375)
-		object3d.position.set(-2, -1, 0)
-		object3d.name 	= 'Key light'
-		scene.add(object3d)
-		var object3d	= new THREE.DirectionalLight('white', 0.5*1)
-		object3d.position.set(3, 3, 2)
-		object3d.name	= 'Fill light'
-		scene.add(object3d)		
-	})()
-
-	//////////////////////////////////////////////////////////////////////////////////
-	//		Initialize a basic camera
-	//////////////////////////////////////////////////////////////////////////////////
-
-	// Create a camera
-	var camera = new THREE.Camera();
-	scene.add(camera);
-
-	////////////////////////////////////////////////////////////////////////////////
-	//          handle arToolkitSource
-	////////////////////////////////////////////////////////////////////////////////
-
-	var arToolkitSource = new THREEx.ArToolkitSource({
-		// to read from the webcam 
-		sourceType : 'webcam',
-		
-		// to read from an image
-		// sourceType : 'image',
-		// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',		
-
-		// to read from a video
-		// sourceType : 'video',
-		// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',		
-	})
-
-	arToolkitSource.init(function onReady(){
-		onResize()
-	})
-	
-	// handle resize
-	window.addEventListener('resize', function(){
-		onResize()
-	})
-	function onResize(){
-		arToolkitSource.onResize()	
-		arToolkitSource.copySizeTo(renderer.domElement)	
-		if( arToolkitContext.arController !== null ){
-			arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
-		}	
-	}
-	////////////////////////////////////////////////////////////////////////////////
-	//          initialize arToolkitContext
-	////////////////////////////////////////////////////////////////////////////////	
-
-	// create atToolkitContext
-	var arToolkitContext = new THREEx.ArToolkitContext({
-		cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
-		detectionMode: 'mono',
-	})
-	// initialize it
-	arToolkitContext.init(function onCompleted(){
-		// copy projection matrix to camera
-		camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
-	})
-
-	// update artoolkit on every frame
-	onRenderFcts.push(function(){
-		if( arToolkitSource.ready === false )	return
-
-		arToolkitContext.update( arToolkitSource.domElement )
-	})
-	
-;(function(){
-	
-	//////////////////////////////////////////////////////////////////////////////
-	//		markerRoot1
-	//////////////////////////////////////////////////////////////////////////////
-
-	// build markerControls
-	var markerRoot1 = new THREE.Group
-	markerRoot1.name = 'marker1'
-	scene.add(markerRoot1)
-	var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
-		type : 'pattern',
-		patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
-		// patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
-	})
-    // load obj+mtl
-    var mtlLoader1 = new THREE.MTLLoader();
-    mtlLoader1.setPath('./data/models/');
-    mtlLoader1.load('babyDove.mtl', function(materials){
-        materials.preload();
-
-        var objLoader = new THREE.OBJLoader();
-        objLoader.setMaterials(materials);
-        objLoader.load('./data/models/babyDove.obj', function(object){
-            window.model = object;
-            object.position.y = 0.5
-            object.scale.set(1,1,1,).multiplyScalar(0.04);
-            markerRoot1.add(object);
-        });
-    })
-
-	//////////////////////////////////////////////////////////////////////////////
-	//		markerRoot2
-	//////////////////////////////////////////////////////////////////////////////
-
-	// build markerControls
-	var markerRoot2 = new THREE.Group
-	markerRoot2.name = 'marker2'
-	scene.add(markerRoot2)
-	var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot2, {
-		type : 'pattern',
-		// patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
-		patternUrl : THREEx.ArToolkitContext.baseURL + '../data/markers/nike-pattern.patt',
-	})
-
-    // Loading obj + mtl
-    var mtlLoader = new THREE.MTLLoader();
-    mtlLoader.setPath('./data/models/');
-    mtlLoader.load('nike.mtl', function(materials){
-        materials.preload();
-
-        var objLoader = new THREE.OBJLoader();
-        objLoader.setMaterials(materials);
-        objLoader.load('./data/models/nike.obj', function(object){
-            window.model = object;
-            object.position.y = 0.5
-            markerRoot2.add(object);
-        });
-
-    })
-    //var url2 = './data/models/nike.obj';
-    /*
-    var loader2 = new THREE.OBJLoader();
-    loader2.load(url2, function(model){
-        window.model = model
-        model.position.y = 0.5
-
-        model.rotation.x = 3*Math.PI/2
-        model.rotation.y = Math.PI
-               
-        markerRoot2.add(model)
-    });*/
-	
-})()
-
-
-;(function(){
-	var markerRoot1 = scene.getObjectByName('marker1')
-	var markerRoot2 = scene.getObjectByName('marker2')
-	
-	var container = new THREE.Group
-	scene.add(container)
-
-	// update container.visible and scanningSpinner visibility
-	onRenderFcts.push(function(){
-		if( markerRoot1.visible === true && markerRoot2.visible === true ){
-			container.visible = true
-			document.querySelector('.scanningSpinner').style.display = 'none'
-		}else{
-			container.visible = false
-			document.querySelector('.scanningSpinner').style.display = ''
-		}
-	})
-	
-})()
-	//////////////////////////////////////////////////////////////////////////////////
-	//		render the whole thing on the page
-	//////////////////////////////////////////////////////////////////////////////////
-
-	// render the scene
-	onRenderFcts.push(function(){
-		renderer.render( scene, camera );
-	})
-
-	// run the rendering loop
-	var lastTimeMsec= null
-	requestAnimationFrame(function animate(nowMsec){
-		// keep looping
-		requestAnimationFrame( animate );
-		// measure time
-		lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
-		var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
-		lastTimeMsec	= nowMsec
-		// call each update function
-		onRenderFcts.forEach(function(onRenderFct){
-			onRenderFct(deltaMsec/1000, nowMsec/1000)
-		})
-	})
+	THREEx.ArToolkitContext.baseURL = 'threejs-AR/' + './'
 </script>
 
-<!-- Scanning animation when the marker are not visible -->
-<div class="scanningSpinner">
-	<label>
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+	<div style='position: absolute; top: 10px; width:100%; text-align: center; z-index: 1;'>
+		<a href="https://github.com/jeromeetienne/AR.js/" target="_blank">AR.js</a> - Measure the distance between 2 markers -
+		hiro and kanji
+		<br/> Contact me any time at <a href='https://twitter.com/jerome_etienne' target='_blank'>@jerome_etienne</a>
+	</div>
+	<script>
+		//////////////////////////////////////////////////////////////////////////////////
+		//		Init
+		//////////////////////////////////////////////////////////////////////////////////
+
+		// init renderer
+		var renderer = new THREE.WebGLRenderer({
+			antialias: true,
+			alpha: true
+		});
+		renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+		renderer.setSize(640, 480);
+		renderer.domElement.style.position = 'absolute'
+		renderer.domElement.style.top = '0px'
+		renderer.domElement.style.left = '0px'
+		document.body.appendChild(renderer.domElement);
+
+		// array of functions for the rendering loop
+		var onRenderFcts = [];
+
+		// init scene and camera
+		var scene = new THREE.Scene();
+
+		//////////////////////////////////////////////////////////////////////////////////
+		//		set 3 point lighting						//
+		//////////////////////////////////////////////////////////////////////////////////
+		;
+		(function () {
+			var object3d = new THREE.AmbientLight(0x101010)
+			object3d.name = 'Ambient light'
+			scene.add(object3d)
+			var object3d = new THREE.DirectionalLight('white', 0.225)
+			object3d.position.set(2.6, 1, 3)
+			object3d.name = 'Back light'
+			scene.add(object3d)
+			var object3d = new THREE.DirectionalLight('white', 0.375)
+			object3d.position.set(-2, -1, 0)
+			object3d.name = 'Key light'
+			scene.add(object3d)
+			var object3d = new THREE.DirectionalLight('white', 0.5 * 1)
+			object3d.position.set(3, 3, 2)
+			object3d.name = 'Fill light'
+			scene.add(object3d)
+		})()
+
+		//////////////////////////////////////////////////////////////////////////////////
+		//		Initialize a basic camera
+		//////////////////////////////////////////////////////////////////////////////////
+
+		// Create a camera
+		var camera = new THREE.Camera();
+		scene.add(camera);
+
+		////////////////////////////////////////////////////////////////////////////////
+		//          handle arToolkitSource
+		////////////////////////////////////////////////////////////////////////////////
+
+		var arToolkitSource = new THREEx.ArToolkitSource({
+			// to read from the webcam 
+			sourceType: 'webcam',
+
+			// to read from an image
+			// sourceType : 'image',
+			// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',		
+
+			// to read from a video
+			// sourceType : 'video',
+			// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',		
+		})
+
+		arToolkitSource.init(function onReady() {
+			onResize()
+		})
+
+		// handle resize
+		window.addEventListener('resize', function () {
+			onResize()
+		})
+
+		function onResize() {
+			arToolkitSource.onResize()
+			arToolkitSource.copySizeTo(renderer.domElement)
+			if (arToolkitContext.arController !== null) {
+				arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)
+			}
+		}
+		////////////////////////////////////////////////////////////////////////////////
+		//          initialize arToolkitContext
+		////////////////////////////////////////////////////////////////////////////////	
+
+		// create atToolkitContext
+		var arToolkitContext = new THREEx.ArToolkitContext({
+			cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
+			detectionMode: 'mono',
+		})
+		// initialize it
+		arToolkitContext.init(function onCompleted() {
+			// copy projection matrix to camera
+			camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+		})
+
+		// update artoolkit on every frame
+		onRenderFcts.push(function () {
+			if (arToolkitSource.ready === false) return
+
+			arToolkitContext.update(arToolkitSource.domElement)
+		})
+
+		;
+		(function () {
+
+			//////////////////////////////////////////////////////////////////////////////
+			//		markerRoot1
+			//////////////////////////////////////////////////////////////////////////////
+
+			// build markerControls
+			var markerRoot1 = new THREE.Group
+			markerRoot1.name = 'marker1'
+			scene.add(markerRoot1)
+			var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot1, {
+				type: 'pattern',
+				patternUrl: THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+				// patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
+			})
+			// load obj+mtl
+			var mtlLoader1 = new THREE.MTLLoader();
+			mtlLoader1.setPath('./data/models/');
+			mtlLoader1.load('babyDove.mtl', function (materials) {
+				materials.preload();
+
+				var objLoader = new THREE.OBJLoader();
+				objLoader.setMaterials(materials);
+				objLoader.load('./data/models/babyDove.obj', function (object) {
+					window.model = object;
+					object.position.y = 0.5
+					object.scale.set(1, 1, 1, ).multiplyScalar(0.04);
+					markerRoot1.add(object);
+				});
+			})
+
+			//////////////////////////////////////////////////////////////////////////////
+			//		markerRoot2
+			//////////////////////////////////////////////////////////////////////////////
+
+			// build markerControls
+			var markerRoot2 = new THREE.Group
+			markerRoot2.name = 'marker2'
+			scene.add(markerRoot2)
+			var markerControls = new THREEx.ArMarkerControls(arToolkitContext, markerRoot2, {
+				type: 'pattern',
+				// patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro',
+				patternUrl: THREEx.ArToolkitContext.baseURL + '../data/markers/nike-pattern.patt',
+			})
+
+			// Loading obj + mtl
+			var mtlLoader = new THREE.MTLLoader();
+			mtlLoader.setPath('./data/models/');
+			mtlLoader.load('nike.mtl', function (materials) {
+				materials.preload();
+
+				var objLoader = new THREE.OBJLoader();
+				objLoader.setMaterials(materials);
+				objLoader.load('./data/models/nike.obj', function (object) {
+					window.model = object;
+					object.position.y = 0.5
+					markerRoot2.add(object);
+				});
+
+			})
+			//var url2 = './data/models/nike.obj';
+			/*
+			var loader2 = new THREE.OBJLoader();
+			loader2.load(url2, function(model){
+			    window.model = model
+			    model.position.y = 0.5
+
+			    model.rotation.x = 3*Math.PI/2
+			    model.rotation.y = Math.PI
+			           
+			    markerRoot2.add(model)
+			});*/
+
+		})()
+
+
+		;
+		(function () {
+			var markerRoot1 = scene.getObjectByName('marker1')
+			var markerRoot2 = scene.getObjectByName('marker2')
+
+			var container = new THREE.Group
+			scene.add(container)
+
+			// update container.visible and scanningSpinner visibility
+			onRenderFcts.push(function () {
+				if (markerRoot1.visible === true && markerRoot2.visible === true) {
+					container.visible = true
+					document.querySelector('.scanningSpinner').style.display = 'none'
+				} else {
+					container.visible = false
+					document.querySelector('.scanningSpinner').style.display = ''
+				}
+			})
+
+		})()
+		//////////////////////////////////////////////////////////////////////////////////
+		//		render the whole thing on the page
+		//////////////////////////////////////////////////////////////////////////////////
+
+		// render the scene
+		onRenderFcts.push(function () {
+			renderer.render(scene, camera);
+		})
+
+		// run the rendering loop
+		var lastTimeMsec = null
+		requestAnimationFrame(function animate(nowMsec) {
+			// keep looping
+			requestAnimationFrame(animate);
+			// measure time
+			lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60
+			var deltaMsec = Math.min(200, nowMsec - lastTimeMsec)
+			lastTimeMsec = nowMsec
+			// call each update function
+			onRenderFcts.forEach(function (onRenderFct) {
+				onRenderFct(deltaMsec / 1000, nowMsec / 1000)
+			})
+		})
+	</script>
+
+	<!-- Scanning animation when the marker are not visible -->
+	<div class="scanningSpinner">
+		<label>
 		Scanning
 	</label>
-	<div class="rect1"></div>
-	<div class="rect2"></div>
-	<div class="rect3"></div>
-</div>
-<style>
-.scanningSpinner {
-	margin: 100px auto;
-	height: 40px;
-	text-align: center;
-}
-
-.scanningSpinner label {
-	display: block;
-	color: #333;
-	font-size: 200%;
-}
-
-.scanningSpinner > div {
-	background-color: #333;
-	height: 100%;
-	width: 6px;
-	display: inline-block;
-	
-	-webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
-	animation: sk-stretchdelay 1.2s infinite ease-in-out;
-}
-
-.scanningSpinner .rect2 {
-	-webkit-animation-delay: -1.1s;
-	animation-delay: -1.1s;
-}
-
-.scanningSpinner .rect3 {
-	-webkit-animation-delay: -1.0s;
-	animation-delay: -1.0s;
-}
-
-@-webkit-keyframes sk-stretchdelay {
-	0%, 40%, 100% { -webkit-transform: scaleY(0.4) }  
-	20% { -webkit-transform: scaleY(1.0) }
-}
-
-@keyframes sk-stretchdelay {
-	0%, 40%, 100% { 
-		transform: scaleY(0.4);
-		-webkit-transform: scaleY(0.4);
+		<div class="rect1"></div>
+		<div class="rect2"></div>
+		<div class="rect3"></div>
+	</div>
+	<style>
+		.scanningSpinner {
+			margin: 100px auto;
+			height: 40px;
+			text-align: center;
 		}
-	20% { 
-		transform: scaleY(1.0);
-		-webkit-transform: scaleY(1.0);
-	}
-}
-</style>
+
+		.scanningSpinner label {
+			display: block;
+			color: #333;
+			font-size: 200%;
+		}
+
+		.scanningSpinner>div {
+			background-color: #333;
+			height: 100%;
+			width: 6px;
+			display: inline-block;
+
+			-webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
+			animation: sk-stretchdelay 1.2s infinite ease-in-out;
+		}
+
+		.scanningSpinner .rect2 {
+			-webkit-animation-delay: -1.1s;
+			animation-delay: -1.1s;
+		}
+
+		.scanningSpinner .rect3 {
+			-webkit-animation-delay: -1.0s;
+			animation-delay: -1.0s;
+		}
+
+		@-webkit-keyframes sk-stretchdelay {
+			0%,
+			40%,
+			100% {
+				-webkit-transform: scaleY(0.4)
+			}
+			20% {
+				-webkit-transform: scaleY(1.0)
+			}
+		}
+
+		@keyframes sk-stretchdelay {
+			0%,
+			40%,
+			100% {
+				transform: scaleY(0.4);
+				-webkit-transform: scaleY(0.4);
+			}
+			20% {
+				transform: scaleY(1.0);
+				-webkit-transform: scaleY(1.0);
+			}
+		}
+	</style>
 
 </body>
